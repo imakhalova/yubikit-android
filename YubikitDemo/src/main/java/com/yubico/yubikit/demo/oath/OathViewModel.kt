@@ -38,6 +38,8 @@ import java.util.concurrent.Executors
 const val SPECIAL_ISSUER_THAT_DOES_NOT_TRUNCATE_CODE = "Steam"
 private const val OPERATION_ID = "operationId"
 private const val CREDENTIAL = "credential"
+private const val NAME = "name"
+private const val ISSUER = "issuer"
 private const val PASSWORD = "password"
 private const val FIVE_SECONDS = 5000.toLong()
 
@@ -185,6 +187,15 @@ class OathViewModel(yubikitManager: YubiKitManager) : YubikeyViewModel(yubikitMa
                             map.remove(credential)
                             _credentials.postValue(map)
                         }
+                        Operations.RENAME_CREDENTIAL -> {
+                            val credential = request.getSerializable(CREDENTIAL) as Credential
+                            Logger.d("Remove credential = ${credential.name}")
+                            val newCred = oathApplication.renameCredential(credential, request.getString(NAME), request.getString(ISSUER))
+                            val map = _credentials.value.orEmpty().toMutableMap()
+                            map[newCred] = map[credential]
+                            map.remove(credential)
+                            _credentials.postValue(map)
+                        }
                         Operations.RESET -> {
                             Logger.d("Reset oath application for device ${oathApplication.applicationInfo.deviceId}")
                             // remove locally all credentials before reset, because after reset we won't be able to get list
@@ -282,6 +293,16 @@ class OathViewModel(yubikitManager: YubiKitManager) : YubikeyViewModel(yubikitMa
         executeDemoCommands()
     }
 
+    fun renameCredential(credential: Credential, name:String, issuer:String) {
+        requestQueue.add(Bundle().apply {
+            putSerializable(OPERATION_ID, Operations.RENAME_CREDENTIAL)
+            putSerializable(CREDENTIAL, credential)
+            putString(NAME, name)
+            putString(ISSUER, issuer)
+        })
+        executeDemoCommands()
+    }
+
     fun checkPassword(password: String) {
         requestQueue.add(Bundle().apply {
             putSerializable(OPERATION_ID, Operations.VALIDATE)
@@ -364,7 +385,8 @@ class OathViewModel(yubikitManager: YubiKitManager) : YubikeyViewModel(yubikitMa
         CALCULATE,
         ADD_CREDENTIAL,
         REMOVE_CREDENTIAL,
-        RESET
+        RESET,
+        RENAME_CREDENTIAL
     }
 
     /**

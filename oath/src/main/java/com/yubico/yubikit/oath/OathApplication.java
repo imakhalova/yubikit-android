@@ -28,6 +28,7 @@ import com.yubico.yubikit.apdu.ApduCodeException;
 import com.yubico.yubikit.apdu.ApduException;
 import com.yubico.yubikit.apdu.Tlv;
 import com.yubico.yubikit.apdu.TlvUtils;
+import com.yubico.yubikit.apdu.Version;
 import com.yubico.yubikit.exceptions.ApplicationNotFound;
 import com.yubico.yubikit.transport.YubiKeySession;
 
@@ -82,6 +83,7 @@ public class OathApplication  extends Iso7816Application {
     private static final byte INS_DELETE = 0x02;
     private static final byte INS_SET_CODE = 0x03;
     private static final byte INS_RESET = 0x04;
+    private static final byte INS_RENAME = 0x05;
     private static final byte INS_CALCULATE = (byte) 0xa2;
     private static final byte INS_VALIDATE = (byte) 0xa3;
     private static final byte INS_CALCULATE_ALL = (byte) 0xa4;
@@ -447,6 +449,33 @@ public class OathApplication  extends Iso7816Application {
         list.add(new Tlv(TAG_NAME, credential.getId().getBytes(StandardCharsets.UTF_8)));
         Apdu apdu = new Apdu(0x00, INS_DELETE, 0,0, TlvUtils.TlvToData(list));
         sendAndReceive(apdu);
+    }
+
+    /**
+     * Changes name of account and issuer for specified credential
+     * @param credential that needs to be renamed
+     * @param newAccountName new account name
+     * @param newIssuer new issuer name
+     * @return new credential object with new name and issuer
+     */
+    public Credential renameCredential(Credential credential, String newAccountName, String newIssuer) throws IOException, ApduException {
+        if (credential.isTouch() && applicationInfo.getVersion().compare(new Version(5 ,3, 0)) < 0) {
+            throw new ApduException("Rename is supported on YubiKey 5.3 or later");
+        }
+        List<Tlv> list = new ArrayList<>();
+        list.add(new Tlv(TAG_NAME, credential.getId().getBytes(StandardCharsets.UTF_8)));
+        Credential newCredential = new Credential(newAccountName,
+                credential.getOathType(),
+                credential.getHashAlgorithm(),
+                credential.getSecret(),
+                credential.getDigits(),
+                credential.getPeriod(),
+                credential.getCounter(),
+                newIssuer);
+        list.add(new Tlv(TAG_NAME, newCredential.getId().getBytes(StandardCharsets.UTF_8)));
+        Apdu apdu = new Apdu(0x00, INS_RENAME, 0,0, TlvUtils.TlvToData(list));
+        sendAndReceive(apdu);
+        return newCredential;
     }
 
     /**
