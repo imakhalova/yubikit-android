@@ -26,6 +26,7 @@
     Usage of TOTP can be tested with https://demo.yubico.com/playground. Add authenticator application as 2nd factor auth. \n
         Or any other service that allows 2nd factor auth with authenticator app.
     Additionally QR codes for testing purposes can be generated on https://stefansundin.github.io/2fa-qr/</string>
+    <string name="account_name">Account name</string>
     <string name="issuer">Issuer</string>
     <string name="copied">Code copied to clipboard</string>
     <string name="not_copied">No code to copy</string>

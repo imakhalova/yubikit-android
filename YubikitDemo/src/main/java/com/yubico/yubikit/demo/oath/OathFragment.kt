@@ -49,7 +49,10 @@ import kotlinx.android.synthetic.main.fragment_oath.swiperefresh
 
 private const val REQUEST_SCAN_QR = 3
 private const val TAG = "OathFragment"
-class OathFragment : BaseYubikeyFragment(TAG), OnRecyclerViewItemClickListener, OperationsListDialogFragment.Listener, PasswordDialogFragment.DialogListener {
+class OathFragment : BaseYubikeyFragment(TAG), OnRecyclerViewItemClickListener,
+        OperationsListDialogFragment.Listener,
+        PasswordDialogFragment.DialogListener,
+        RenameDialogFragment.DialogListener {
 
     // this view model can be per fragment because we're not sharing it's data with any other activity or fragment
     private val viewModel: OathViewModel by lazy {
@@ -203,7 +206,15 @@ class OathFragment : BaseYubikeyFragment(TAG), OnRecyclerViewItemClickListener, 
                     }
                 }
             }
+            3 -> {
+                RenameDialogFragment.newInstance(itemPosition, credentials.first.name, credentials.first.issuer)
+                        .show(childFragmentManager, "rename")
+            }
         }
+    }
+
+    override fun onNameChanged(position: Int, name: String, issuer: String) {
+        viewModel.renameCredential(listAdapter.getItemData(position).first, name, issuer)
     }
 
     override fun onPasswordProvided(password: String, passwordType: PasswordDialogFragment.PasswordType) {

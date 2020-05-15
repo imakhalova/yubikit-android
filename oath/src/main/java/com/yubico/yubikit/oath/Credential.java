@@ -36,7 +36,7 @@ public class Credential implements Serializable {
     /**
      * Properties that identify credential
      */
-    public final String name;
+    private final String name;
     private final int period;
     private final @Nullable String issuer;
     private final OathType oathType;
@@ -293,6 +293,10 @@ public class Credential implements Serializable {
      */
     public String getIssuer() {
         return issuer;
+    }
+
+    public String getName() {
+        return name;
     }
 
     /**
